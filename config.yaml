@@ -1,0 +1,62 @@
+# Example configuration for RouteLLM MVP
+backends:
+  - name: mock
+    prefix: mock/
+    mock: true
+    require_api_key: false
+
+  - name: openai
+    prefix: openai/
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    require_api_key: false
+    mock: true
+
+  - name: anthropic
+    prefix: anthropic/
+    base_url: https://api.anthropic.com/v1
+    api_key_env: ANTHROPIC_API_KEY
+    require_api_key: false
+    mock: true
+
+  - name: openrouter
+    prefix: openrouter/
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    require_api_key: true
+    mock: false
+
+  - name: ollama
+    prefix: ollama/
+    base_url: http://localhost:11434/v1
+    require_api_key: false
+    mock: true
+
+aliases:
+  demo: mock/gpt-4o-mini
+  cheap: openai/gpt-4o-mini
+  best: anthropic/claude-sonnet-4-5-20250929
+
+routing_rules:
+  task_router:
+    code_generation: openrouter/qwen/qwen3-coder:free
+    brainstorming: openrouter/meta-llama/llama-3.3-70b-instruct:free
+    summarization: openrouter/z-ai/glm-4.5-air:free
+    reasoning: openrouter/openai/gpt-oss-20b:free
+    chatbot: openrouter/google/gemma-3-27b-it:free
+    open_qa: openrouter/openai/gpt-oss-20b:free
+
+pipeline:
+  intent_classifier: http://intent:8000/classify
+  complexity_estimator: http://complexity:8001/classify
+  guardrails: http://guardrails:8002/check
+  policy_engine: http://policy:8003/decide
+
+# Memory management configuration
+memory:
+  enabled: true  # Enable token-based memory stacking
+  max_tokens_per_conversation: 4000  # Maximum tokens per conversation
+  max_total_tokens: 100000  # Maximum total tokens across all conversations
+  pruning_strategy: "fifo"  # "fifo" (oldest first), "lifo" (newest first), "importance" (keep user messages)
+  storage_backend: "memory"  # "memory" (in-memory) or "redis" (persistent)
+  redis_url: "redis://localhost:6379"  # Redis URL if using redis backend
